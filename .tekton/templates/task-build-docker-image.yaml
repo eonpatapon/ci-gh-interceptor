@@ -1,0 +1,43 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: build-push-kaniko
+  annotations:
+    kapp.k14s.io/change-group: "ci/resources"
+spec:
+  inputs:
+    resources:
+      - name: source
+        type: git
+    params:
+      - name: pathToDockerFile
+        description: The path to the dockerfile to build
+        default: /workspace/source/Dockerfile
+      - name: pathToContext
+        description: The build context used by Kaniko (https://github.com/GoogleContainerTools/kaniko#kaniko-build-contexts)
+        default: /workspace/source
+  outputs:
+    resources:
+      - name: builtImage
+        type: image
+  steps:
+    # - name: debug
+    #   image: nixery.dev/shell
+    #   command:
+    #     - /bin/bash
+    #   args:
+    #     - -ec
+    #     - "sleep 1000"
+    - name: build-and-push
+      image: gcr.io/kaniko-project/executor:v0.13.0
+      # specifying DOCKER_CONFIG is required to allow kaniko to detect docker credential
+      env:
+        - name: "DOCKER_CONFIG"
+          value: "/builder/home/.docker/"
+      command:
+        - /kaniko/executor
+      args:
+        - --dockerfile=$(inputs.params.pathToDockerFile)
+        - --destination=$(outputs.resources.builtImage.url)
+        - --context=$(inputs.params.pathToContext)
+        - --oci-layout-path=/builder/home/image-outputs/builtImage

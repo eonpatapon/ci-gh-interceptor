@@ -1,0 +1,26 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: build-push-dockerfile
+  annotations:
+    kapp.k14s.io/change-group: "ci/resources"
+spec:
+  resources:
+    - name: source-repo
+      type: git
+    - name: docker-image
+      type: image
+  tasks:
+    - name: build-image
+      taskRef:
+        name: build-push-kaniko
+      params:
+        - name: pathToContext
+          value: /workspace/source
+      resources:
+        inputs:
+          - name: source
+            resource: source-repo
+        outputs:
+          - name: builtImage
+            resource: docker-image

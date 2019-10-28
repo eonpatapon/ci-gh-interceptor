@@ -1,0 +1,6 @@
+secrets:
+  docker:
+    url: https://index.docker.io/v1/
+
+image:
+  name: eonpatapon/ci-gh-interceptor
