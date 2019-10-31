@@ -18,16 +18,9 @@ spec:
         default: /workspace/source
   outputs:
     resources:
-      - name: builtImage
+      - name: image
         type: image
   steps:
-    # - name: debug
-    #   image: nixery.dev/shell
-    #   command:
-    #     - /bin/bash
-    #   args:
-    #     - -ec
-    #     - "sleep 1000"
     - name: build-and-push
       image: gcr.io/kaniko-project/executor:v0.13.0
       # specifying DOCKER_CONFIG is required to allow kaniko to detect docker credential
@@ -40,4 +33,4 @@ spec:
         - --dockerfile=$(inputs.params.pathToDockerFile)
         - --destination=$(outputs.resources.builtImage.url)
         - --context=$(inputs.params.pathToContext)
-        - --oci-layout-path=/builder/home/image-outputs/builtImage
+        - --oci-layout-path=/builder/home/image-outputs/image

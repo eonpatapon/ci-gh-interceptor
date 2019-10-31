@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
-  name: build-push-dockerfile
+  name: build-push-deploy-dockerfile
   annotations:
     kapp.k14s.io/change-group: "ci/resources"
 spec:
@@ -10,6 +10,10 @@ spec:
       type: git
     - name: docker-image
       type: image
+  params:
+    - name: eventType
+      type: string
+      default: push
   tasks:
     - name: build-image
       taskRef:
@@ -22,5 +26,16 @@ spec:
           - name: source
             resource: source-repo
         outputs:
-          - name: builtImage
+          - name: image
             resource: docker-image
+    - name: deploy
+      taskRef:
+        name: deploy-kubectl
+      resources:
+        inputs:
+          - name: source
+            resource: source-repo
+          - name: image
+            resource: docker-image
+            from:
+              - build-image
