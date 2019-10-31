@@ -11,9 +11,9 @@ spec:
     - name: docker-image
       type: image
   params:
-    - name: eventType
+    - name: helmPath
       type: string
-      default: push
+      description: Path of the app helm chart relative to the source repo root
   tasks:
     - name: build-image
       taskRef:
@@ -30,7 +30,7 @@ spec:
             resource: docker-image
     - name: deploy
       taskRef:
-        name: deploy-kubectl
+        name: deploy-helm
       resources:
         inputs:
           - name: source
@@ -39,3 +39,6 @@ spec:
             resource: docker-image
             from:
               - build-image
+      params:
+        - name: helmPath
+          value: $(params.helmPath)

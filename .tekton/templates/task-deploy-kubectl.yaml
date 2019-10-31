@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
-  name: deploy-kubectl
+  name: deploy-helm
 spec:
   inputs:
     resources:
@@ -10,29 +10,46 @@ spec:
       - name: image
         type: image
     params:
-      - name: path
+      - name: helmPath
         type: string
-        description: Path to the manifest to apply
-        default: "/workspace/source/deployment.yaml"
-      - name: yamlPathToImage
-        type: string
-        description:
-          The path to the image to replace in the yaml manifest (arg to yq)
-        default: "spec.template.spec.containers[0].image"
+        description: Path to the chart to apply
   steps:
-    - name: replace-image
-      image: mikefarah/yq
-      command: ["yq"]
+    - name: get-ci-context
+      image: nixery.dev/shell/kubectl
+      command: ["bash"]
+      workingDir: /workspace/source/$(inputs.params.helmPath)
       args:
-        - "w"
-        - "-i"
-        - "$(inputs.params.path)"
-        - "$(inputs.params.yamlPathToImage)"
-        - "$(inputs.resources.image.url)"
-    - name: run-kubectl
-      image: lachlanevenson/k8s-kubectl
-      command: ["kubectl"]
+        - -ce
+        - |
+          kubectl get configmap ci-context-{{ .Values.global.ci.uid }} -o=jsonpath="{.data.context}" > values-global.yaml
+          cat values-global.yaml
+    - name: gen-image-value
+      image: nixery.dev/shell/yq
+      command: ["bash"]
+      workingDir: /workspace/source/$(inputs.params.helmPath)
       args:
-        - "apply"
-        - "-f"
-        - "$(inputs.params.path)"
+        - -ce
+        - |
+          echo "{global: {ci: {image: {url: $(inputs.resources.image.url)}}}}" | yq -y . > values-global-image.yaml
+          cat values-global-image.yaml
+    - name: helm-template
+      image: nixery.dev/shell/kubernetes-helm
+      command: ["bash"]
+      workingDir: /workspace/source/$(inputs.params.helmPath)
+      args:
+        - -ce
+        - |
+          helm template . --values=values-global-image.yaml --values=values-global.yaml > rendered.yaml
+    - name: kapp-deploy
+      image: eonpatapon/kapp
+      command: ["kapp"]
+      workingDir: /workspace/source/$(inputs.params.helmPath)
+      args:
+        - deploy
+        - -a
+        - {{ .Values.global.ci.repository.name }}
+        - -n
+        - {{ .Values.global.ci.namespace }}
+        - -f
+        - rendered.yaml
+        - -y

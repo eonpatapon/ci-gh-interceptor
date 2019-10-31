@@ -31,6 +31,6 @@ spec:
         - /kaniko/executor
       args:
         - --dockerfile=$(inputs.params.pathToDockerFile)
-        - --destination=$(outputs.resources.builtImage.url)
+        - --destination=$(outputs.resources.image.url)
         - --context=$(inputs.params.pathToContext)
         - --oci-layout-path=/builder/home/image-outputs/image

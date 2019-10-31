@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ci-gh-interceptor.fullname" . }}
+  labels:
+{{ include "ci-gh-interceptor.labels" . | indent 4 }}
+  namespace: {{ .Values.global.ci.namespace }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: {{ include "ci-gh-interceptor.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}

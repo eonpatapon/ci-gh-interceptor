@@ -4,3 +4,5 @@ secrets:
 
 image:
   name: eonpatapon/ci-gh-interceptor
+
+helmPath: ci-gh-interceptor
