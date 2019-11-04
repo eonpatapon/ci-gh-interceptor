@@ -4,8 +4,8 @@ image:
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
-nameOverride: "ci-gh-interceptor"
-fullnameOverride: "ci-gh-interceptor"
+nameOverride: "tekton-github-interceptor"
+fullnameOverride: "tekton-github-interceptor"
 
 service:
   type: ClusterIP
