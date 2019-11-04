@@ -2,6 +2,9 @@ apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
   name: deploy-helm
+  annotations:
+    kapp.k14s.io/change-group: "ci/resources"
+    kapp.k14s.io/disable-associated-resources-wait: ""
 spec:
   inputs:
     resources:
@@ -13,16 +16,11 @@ spec:
       - name: helmPath
         type: string
         description: Path to the chart to apply
+  volumes:
+    - name: ci-context
+      configMap:
+        name: ci-context-{{ .Values.global.ci.uid }}
   steps:
-    - name: get-ci-context
-      image: nixery.dev/shell/kubectl
-      command: ["bash"]
-      workingDir: /workspace/source/$(inputs.params.helmPath)
-      args:
-        - -ce
-        - |
-          kubectl get configmap ci-context-{{ .Values.global.ci.uid }} -o=jsonpath="{.data.context}" > values-global.yaml
-          cat values-global.yaml
     - name: gen-image-value
       image: nixery.dev/shell/yq
       command: ["bash"]
@@ -30,8 +28,8 @@ spec:
       args:
         - -ce
         - |
-          echo "{global: {ci: {image: {url: $(inputs.resources.image.url)}}}}" | yq -y . > values-global-image.yaml
-          cat values-global-image.yaml
+          echo "{image: {url: $(inputs.resources.image.url), digest: $(inputs.resources.image.digest)}}" | yq -y . > values-image.yaml
+          cat values-image.yaml
     - name: helm-template
       image: nixery.dev/shell/kubernetes-helm
       command: ["bash"]
@@ -39,7 +37,12 @@ spec:
       args:
         - -ce
         - |
-          helm template . --values=values-global-image.yaml --values=values-global.yaml > rendered.yaml
+          helm template . --values=values-image.yaml --values=/ci-values.yaml > rendered.yaml
+          cat rendered.yaml
+      volumeMounts:
+        - name: ci-context
+          mountPath: /ci-values.yaml
+          subPath: ci-values.yaml
     - name: kapp-deploy
       image: eonpatapon/kapp
       command: ["kapp"]

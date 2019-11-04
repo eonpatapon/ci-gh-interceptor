@@ -4,6 +4,7 @@ metadata:
   name: build-push-kaniko
   annotations:
     kapp.k14s.io/change-group: "ci/resources"
+    kapp.k14s.io/disable-associated-resources-wait: ""
 spec:
   inputs:
     resources:
