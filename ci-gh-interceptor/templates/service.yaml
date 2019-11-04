@@ -4,7 +4,7 @@ metadata:
   name: {{ include "ci-gh-interceptor.fullname" . }}
   labels:
 {{ include "ci-gh-interceptor.labels" . | indent 4 }}
-  namespace: {{ .Values.global.ci.namespace }}
+  namespace: {{ include "ci-gh-interceptor.namespace" . }}
 spec:
   type: {{ .Values.service.type }}
   ports:
