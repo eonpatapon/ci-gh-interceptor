@@ -32,6 +32,6 @@ spec:
         - /kaniko/executor
       args:
         - --dockerfile=$(inputs.params.pathToDockerFile)
-        - --destination=$(outputs.resources.image.url)
+        - --destination=$(outputs.resources.image.url):{{ .Values.global.ci.repository.revision }}
         - --context=$(inputs.params.pathToContext)
         - --oci-layout-path=/builder/home/image-outputs/image

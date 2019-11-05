@@ -23,7 +23,7 @@ spec:
     {{- end }}
       containers:
         - name: {{ .Chart.Name }}
-          image: {{ .Values.image.url }}
+          image: {{ .Values.image.url }}:{{ .Values.global.ci.repository.revision }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: GITHUB_SECRET_TOKEN
