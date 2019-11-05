@@ -1,0 +1,18 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ include "ci-gh-interceptor.fullname" . }}
+  labels:
+{{ include "ci-gh-interceptor.labels" . | indent 4 }}
+  namespace: {{ .Values.global.ci.namespace }}
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - host: {{ .Values.global.ci.namespace }}-84-39-53-90.nip.io
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: {{ include "ci-gh-interceptor.fullname" . }}
+              servicePort: 8080
