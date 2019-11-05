@@ -42,8 +42,9 @@ type Repository struct {
 }
 
 type Result struct {
-	EventType  string     `json:"eventType"`
-	Repository Repository `json:"repository"`
+	EventType   string     `json:"eventType"`
+	EventAction string     `json:"eventAction"`
+	Repository  Repository `json:"repository"`
 }
 
 func main() {
@@ -73,6 +74,7 @@ func main() {
 		switch event := event.(type) {
 		case *github.PullRequestEvent:
 			result.EventType = eventName
+			result.EventAction = *event.Action
 			result.Repository = Repository{
 				Name:     event.Repo.Name,
 				FullName: event.Repo.FullName,
