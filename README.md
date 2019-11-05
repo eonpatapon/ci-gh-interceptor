@@ -1,3 +1,1 @@
 # ci-gh-interceptor
-
-Test

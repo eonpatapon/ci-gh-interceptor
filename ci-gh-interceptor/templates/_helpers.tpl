@@ -44,11 +44,3 @@ ci/repository.revision: {{ .Values.global.ci.repository.revision | quote }}
 ci/repository.branch: {{ .Values.global.ci.repository.branch | quote }}
 {{- end }}
 {{- end -}}
-
-{{- define "ci-gh-interceptor.namespace" -}}
-{{- if eq .Values.global.ci.eventType "pull_request" -}}
-{{- .Values.global.ci.namespace -}}
-{{- else -}}
-tekton-pipelines
-{{- end -}}
-{{- end -}}
