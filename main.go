@@ -69,9 +69,10 @@ func main() {
 			return
 		}
 		result := Result{}
+		eventName := request.Header.Get("X-GitHub-Event")
 		switch event := event.(type) {
 		case *github.PullRequestEvent:
-			result.EventType = "pull_request"
+			result.EventType = eventName
 			result.Repository = Repository{
 				Name:     event.Repo.Name,
 				FullName: event.Repo.FullName,
@@ -81,7 +82,7 @@ func main() {
 			}
 		case *github.PushEvent:
 			branch := strings.Split(*event.Ref, "/")[2]
-			result.EventType = "push"
+			result.EventType = eventName
 			result.Repository = Repository{
 				Name:     event.Repo.Name,
 				FullName: event.Repo.FullName,
@@ -103,6 +104,10 @@ func main() {
 					return
 				}
 			}
+		default:
+			log.Printf("Event %s not supported", eventName)
+			http.Error(writer, fmt.Sprintf("Event %s not supported", eventName), http.StatusBadRequest)
+			return
 		}
 		jsonResult, err := json.Marshal(result)
 		if err != nil {
