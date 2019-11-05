@@ -38,6 +38,7 @@ type Repository struct {
 	URL      *string `json:"url"`
 	Revision *string `json:"revision"`
 	Branch   *string `json:"branch"`
+	FullName *string `json:"fullName"`
 }
 
 type Result struct {
@@ -73,6 +74,7 @@ func main() {
 			result.EventType = "pull_request"
 			result.Repository = Repository{
 				Name:     event.Repo.Name,
+				FullName: event.Repo.FullName,
 				URL:      event.PullRequest.Head.Repo.CloneURL,
 				Revision: event.PullRequest.Head.SHA,
 				Branch:   event.PullRequest.Head.Ref,
@@ -82,6 +84,7 @@ func main() {
 			result.EventType = "push"
 			result.Repository = Repository{
 				Name:     event.Repo.Name,
+				FullName: event.Repo.FullName,
 				URL:      event.Repo.CloneURL,
 				Revision: event.HeadCommit.ID,
 				Branch:   &branch,
