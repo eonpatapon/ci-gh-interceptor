@@ -37,7 +37,7 @@ type Repository struct {
 	Name     *string `json:"name"`
 	URL      *string `json:"url"`
 	Revision *string `json:"revision"`
-	Branch   *string `json:"branch"`
+	Branch   string  `json:"branch"`
 	FullName *string `json:"fullName"`
 }
 
@@ -45,6 +45,25 @@ type Result struct {
 	EventType   string     `json:"eventType"`
 	EventAction string     `json:"eventAction"`
 	Repository  Repository `json:"repository"`
+	Namespace   string     `json:"namespace"`
+}
+
+func branchNameFromRef(ref string) string {
+	parts := strings.Split(ref, "/")[2:]
+	return strings.Join(parts, "/")
+}
+
+func sanitizeBranchName(branch string) string {
+	var new_branch string
+	var replacer = strings.NewReplacer(".", "-", "/", "-", "_", "-")
+	for _, r := range branch {
+		if r <= 128 {
+			new_branch = new_branch + string(r)
+		}
+	}
+	new_branch = strings.ToLower(new_branch)
+	new_branch = replacer.Replace(new_branch)
+	return new_branch
 }
 
 func main() {
@@ -80,17 +99,17 @@ func main() {
 				FullName: event.Repo.FullName,
 				URL:      event.PullRequest.Head.Repo.CloneURL,
 				Revision: event.PullRequest.Head.SHA,
-				Branch:   event.PullRequest.Head.Ref,
+				Branch:   *event.PullRequest.Head.Ref,
 			}
 		case *github.PushEvent:
-			branch := strings.Split(*event.Ref, "/")[2]
+			branch := branchNameFromRef(*event.Ref)
 			result.EventType = eventName
 			result.Repository = Repository{
 				Name:     event.Repo.Name,
 				FullName: event.Repo.FullName,
 				URL:      event.Repo.CloneURL,
 				Revision: event.HeadCommit.ID,
-				Branch:   &branch,
+				Branch:   branch,
 			}
 			if pb := request.Header.Get("X-Push-Branches-Only"); pb != "" {
 				branches := strings.Split(pb, ",")
@@ -111,6 +130,10 @@ func main() {
 			http.Error(writer, fmt.Sprintf("Event %s not supported", eventName), http.StatusBadRequest)
 			return
 		}
+
+		result.Namespace = fmt.Sprintf("pipeline-%s-%s", *result.Repository.Name,
+			sanitizeBranchName(result.Repository.Branch))
+
 		jsonResult, err := json.Marshal(result)
 		if err != nil {
 			log.Printf("Failed to marshal JSON result: %s", err)
