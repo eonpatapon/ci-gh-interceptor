@@ -39,9 +39,6 @@ app.kubernetes.io/name: {{ include "ci-gh-interceptor.name" . }}
 helm.sh/chart: {{ include "ci-gh-interceptor.chart" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-ci/uid: {{ .Values.global.ci.uid | quote }}
-ci/repository.revision: {{ .Values.global.ci.repository.revision | quote }}
-ci/repository.branch: {{ .Values.global.ci.repository.branch | quote }}
 {{- end }}
 {{- end -}}
 

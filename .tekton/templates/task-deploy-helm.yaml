@@ -17,10 +17,6 @@ spec:
       - name: helmPath
         type: string
         description: Path to the chart to apply
-  volumes:
-    - name: ci-context
-      configMap:
-        name: ci-context-{{ .Values.global.ci.uid }}
   steps:
     - name: gen-image-value
       image: nixery.dev/shell/yq
@@ -32,18 +28,16 @@ spec:
           echo "{image: {url: $(inputs.resources.image.url), digest: $(inputs.resources.image.digest)}}" | yq -y . > values-image.yaml
           cat values-image.yaml
     - name: helm-template
-      image: nixery.dev/shell/kubernetes-helm
+      image: nixery.dev/shell/kubernetes-helm/yq
       command: ["bash"]
       workingDir: /workspace/source/$(inputs.params.helmPath)
       args:
         - -ce
         - |
-          helm template . --values=values-image.yaml --values=/ci-values.yaml > rendered.yaml
+          echo '{"global": {"ci": {"eventType": "{{ .Values.global.ci.eventType}}", "secrets": {"github": {"token": "{{.Values.global.ci.secrets.github.token }}" }}}}}' | yq . -y > values-global.yaml
+          cat values-global.yaml
+          helm template . --values=values-image.yaml --values=values-global.yaml > rendered.yaml
           cat rendered.yaml
-      volumeMounts:
-        - name: ci-context
-          mountPath: /ci-values.yaml
-          subPath: ci-values.yaml
     - name: kapp-deploy
       image: eonpatapon/kapp
       command: ["kapp"]
@@ -53,7 +47,7 @@ spec:
         - -a
         - {{ .Values.global.ci.repository.name }}
         - -n
-        - {{ .Values.global.ci.namespace }}
+        - {{ .Values.namespace }}
         - -f
         - rendered.yaml
         - -y
