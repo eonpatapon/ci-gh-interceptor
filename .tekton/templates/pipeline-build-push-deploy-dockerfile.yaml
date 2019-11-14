@@ -4,6 +4,7 @@ metadata:
   name: build-push-deploy-dockerfile
   annotations:
     kapp.k14s.io/change-group: "ci/resources"
+  namespace: {{ .Values.namespace }}
 spec:
   resources:
     - name: source-repo

@@ -6,3 +6,5 @@ image:
   name: eonpatapon/ci-gh-interceptor
 
 helmPath: ci-gh-interceptor
+
+namespace: ci-ci-gh-interceptor-pr-1

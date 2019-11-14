@@ -5,6 +5,7 @@ metadata:
   annotations:
     kapp.k14s.io/change-group: "ci/resources"
     kapp.k14s.io/disable-associated-resources-wait: ""
+  namespace: {{ .Values.namespace }}
 spec:
   inputs:
     resources:

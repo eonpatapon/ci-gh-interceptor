@@ -47,8 +47,8 @@ ci/repository.branch: {{ .Values.global.ci.repository.branch | quote }}
 
 {{- define "ci-gh-interceptor.namespace" -}}
 {{- if eq .Values.global.ci.eventType "pull_request" -}}
-{{- .Values.global.ci.namespace -}}
+{{- .Values.namespace -}}
 {{- else -}}
-tekton-pipelines
+default
 {{- end -}}
 {{- end -}}

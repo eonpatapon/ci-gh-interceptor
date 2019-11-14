@@ -4,6 +4,7 @@ metadata:
   name: build-push-deploy-run-{{ .Values.global.ci.uid }}
   annotations:
     kapp.k14s.io/change-rule: "upsert after upserting ci/resources"
+  namespace: {{ .Values.namespace }}
 spec:
   serviceAccount: docker
   pipelineRef:
